@@ -12,15 +12,17 @@ import { TEST_TIMEOUT_LONG } from '../playwright.config.js'
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
 
-test.describe('Community', () => {
+test.describe('Regression: custom view route shadowing (issue repro)', () => {
   let page: Page
-  let url: AdminUrlUtil
+  let serverURLGlobal: string
 
   test.beforeAll(async ({ browser }, testInfo) => {
     testInfo.setTimeout(TEST_TIMEOUT_LONG)
 
-    const { payload, serverURL } = await initPayloadE2ENoConfig({ dirname })
-    url = new AdminUrlUtil(serverURL, 'posts')
+    const { serverURL } = await initPayloadE2ENoConfig({ dirname })
+    serverURLGlobal = serverURL
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const _url = new AdminUrlUtil(serverURL, 'posts')
 
     const context = await browser.newContext()
     page = await context.newPage()
@@ -28,10 +30,19 @@ test.describe('Community', () => {
     await ensureCompilationIsDone({ page, serverURL })
   })
 
-  test('example test', async () => {
-    await page.goto(url.list)
+  test('list view renders at /admin/regression-repro', async () => {
+    await page.goto(`${serverURLGlobal}/admin/regression-repro`)
+    await expect(page.locator('#regression-list-view')).toBeVisible()
+  })
 
-    const textCell = page.locator('.row-1 .cell-title')
-    await expect(textCell).toHaveText('example post')
+  // This test FAILS on @payloadcms/next >= 3.83.0.
+  // The list view ({ path: '/regression-repro' }) shadows the detail view
+  // ({ path: '/regression-repro/:id' }) because isPathMatchingRoute now treats
+  // a non-exact base path as a prefix match. Object.entries(views).find(...)
+  // returns the first match, so the list view wins.
+  test('detail view renders at /admin/regression-repro/123', async () => {
+    await page.goto(`${serverURLGlobal}/admin/regression-repro/123`)
+    await expect(page.locator('#regression-detail-view')).toBeVisible()
+    await expect(page.locator('#regression-detail-id')).toHaveText('123')
   })
 })

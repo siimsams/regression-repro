@@ -18,6 +18,24 @@ export default buildConfigWithDefaults({
     importMap: {
       baseDir: path.resolve(dirname),
     },
+    components: {
+      views: {
+        // Bug reproduction: when two custom admin views are registered and the
+        // base path of one (`/regression-repro`) is a prefix of the other
+        // (`/regression-repro/:id`), visiting the detail URL renders the list
+        // view instead of the detail view on @payloadcms/next >= 3.83.0.
+        regressionList: {
+          path: '/regression-repro',
+          Component:
+            '/components/views/RegressionListView/index.js#RegressionListView',
+        },
+        regressionDetail: {
+          path: '/regression-repro/:id',
+          Component:
+            '/components/views/RegressionDetailView/index.js#RegressionDetailView',
+        },
+      },
+    },
   },
   editor: lexicalEditor({}),
   globals: [
