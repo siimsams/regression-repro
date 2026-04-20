@@ -59,11 +59,20 @@ Files added/modified:
 Run:
 
 ```bash
+# 1. Install deps
 pnpm install
+
+# 2. Start MongoDB (the _community config uses the default
+#    mongoose adapter pointed at mongodb://payload:payload@localhost:27018
+#    with replica set rs0 — this compose file provides that).
+docker compose -f test/docker-compose.yml --profile mongodb up -d --wait
+
+# 3. Boot the _community app
 pnpm dev _community
 ```
 
-Then in the browser:
+Then in the browser, log in with `dev@payloadcms.com` / `test` (the default
+credentials from `test/credentials.ts`, normally autofilled), then:
 
 1. Visit `http://localhost:3000/admin/regression-repro` — the **list** view
    renders (correct).
