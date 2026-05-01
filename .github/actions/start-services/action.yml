@@ -83,7 +83,7 @@ runs:
     - name: Start Supabase
       id: supabase
       if: inputs.database == 'supabase'
-      uses: supabase/setup-cli@v1
+      uses: supabase/setup-cli@v2
       with:
         version: latest
 
